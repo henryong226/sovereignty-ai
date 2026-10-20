@@ -386,6 +386,13 @@ html.paused header.wrap.mast,html.paused header.wrap.mast *,html.paused .spy{tra
 @media (max-width:63.99em){.nav .sec{display:none!important}}
 @media (max-width:43.99em) and (max-height:760px){.orbhome{width:min(48vw,22vh)!important;margin-bottom:18px!important}.hero{padding-top:1rem!important}}
 @media (max-width:22.5em) and (max-height:620px){.orbhome{width:min(34vw,15vh)!important;margin-bottom:8px!important}.hero h1{font-size:3.3rem!important}.hero .sub{margin-bottom:.8em!important}}
+/* Henry 2026-10-20: under 64em the view toggle stands to the right of the hero sphere, 30% smaller; it no longer sits on the headline */
+@media (max-width:63.99em){
+  .orbhome{margin-bottom:0!important;position:relative;left:-2rem}
+  .sphere:not(.sd) .sview{left:calc(100% + 6px);top:50%;transform:translateY(-50%);grid-template-columns:auto;gap:2px;padding:2px;border-radius:18px;font-size:11px}
+  .sphere:not(.sd) .sview span{min-height:31px;padding:0 .6em}}
+@media (max-width:43.99em){.sphere:not(.sd) .pop{white-space:nowrap;max-width:none;font-size:12px;padding:.4em .6em}}
+@media (max-width:22.5em) and (max-height:620px){.orbhome{margin-block:26px!important}.sphere:not(.sd) .pops{display:none}}
 </style>
 </head>
 <body>
@@ -603,7 +610,7 @@ const path=[0];while(path.length<8){const c=path[path.length-1];path.push(near[c
 const onPath=new Set(path),pathEdge=new Set(path.slice(1).map((j,k)=>{const i=path[k];return i<j?i+'-'+j:j+'-'+i}));
 const checked=base.map((_,i)=>{const s=Math.sin(i*78.233)*12543.1;return s-Math.floor(s)<.3});
 // section views (state): v = 0 scattered, .25 gathered, .5 path, .75 checked, 1 calm; spin multiplier; gather scale; pop-up rate (per second) + catch
-const VIEWS={hero:{v:.32,spin:1,g:1,pop:.6},pain:{v:.06,spin:2.2,g:1.08,pop:0},pace:null,beliefs:{v:1,spin:.7,g:1,pop:0},next:{v:1,spin:.35,g:1,pop:0},ask:{v:1,spin:.5,g:.82,pop:0}};
+const VIEWS={hero:{v:.32,spin:1,g:1,pop:.9},pain:{v:.06,spin:2.2,g:1.08,pop:0},pace:null,beliefs:{v:1,spin:.7,g:1,pop:0},next:{v:1,spin:.35,g:1,pop:0},ask:{v:1,spin:.5,g:.82,pop:0}};
 let view='hero';const target=()=>view==='pace'?{v:.25+.75*paceP,spin:1,g:1,pop:.45,catch:1}:VIEWS[view];
 const secs=[['hero','.hero'],['pain','.pain'],['pace','.pace'],['beliefs','.beliefs'],['next','.next'],['ask','.ask']].map(([k,q])=>[k,document.querySelector(q)]);
 const pickView=()=>{const mid=innerHeight*.5;let best=scrollY<innerHeight*.3?'hero':view;secs.forEach(([k,e])=>{const b=e.getBoundingClientRect();if(b.top<=mid&&b.bottom>mid)best=k});box.classList.toggle('away',best==='pace'&&docked&&!box.classList.contains('big'));if(best!==view&&!(best==='pace'||VIEWS[best].pop>0))popsEl.querySelectorAll('.pop:not(.out):not(.caught)').forEach(el=>{el.classList.add('out');setTimeout(()=>el.remove(),750)});view=best};
@@ -633,18 +640,18 @@ const ICONS={alert:'<path d="M8 2.5a3.5 3.5 0 0 0-3.5 3.5v2.5L3 10.5h10l-1.5-2V6
   mail:'<rect x="2" y="3.5" width="12" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 4.5 8 8.8l5.5-4.3" fill="none" stroke="currentColor" stroke-width="1.4"/>',
   cal:'<rect x="2.2" y="3" width="11.6" height="10.8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.2 6.4h11.6M5.3 1.6v2.8M10.7 1.6v2.8" stroke="currentColor" stroke-width="1.4"/>',
   chat:'<path d="M2.5 3h11v7.5H7l-3 2.7v-2.7H2.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>'};
-const ITEMS=[['alert','3 new alerts'],['file','Q3-plan.pdf'],['mail','Re: Thursday sync'],['cal','Review at 3:00'],['chat','@you: quick look?']];
-const SPOTS=[[4,6],[52,10],[2,70],[48,78],[30,40]];let popK=0,popTimer=0,boxVisible=true;
+const ITEMS=[['alert','3 new alerts'],['alert','Deadline moved up'],['file','Q3-plan.pdf'],['mail','Re: Thursday sync'],['cal','Review at 3:00'],['chat','@you: quick look?'],['alert','5 unread in #team'],['alert','Review requested']];
+const SPOTS=matchMedia('(max-width:43.99em)').matches?[[0,4],[8,38],[0,70]]:[[4,6],[52,10],[2,70],[48,78],[30,40]];let popK=0,popTimer=0,boxVisible=true;
 const popOK=()=>!rm&&!paused()&&!document.hidden&&boxVisible&&!smallDock()&&!(docked&&matchMedia('(min-width:64em)').matches&&false);
 const spawn=()=>{const t=target();popTimer=0;
-  if(popOK()&&popsEl.children.length<2&&Math.random()<t.pop*1.2){const [ic,txt]=ITEMS[popK++%ITEMS.length],[x,y]=SPOTS[popK%SPOTS.length];
+  if(popOK()&&popsEl.children.length<3&&Math.random()<t.pop*1.2){const [ic,txt]=ITEMS[popK++%ITEMS.length],[x,y]=SPOTS[popK%SPOTS.length];
     const el=document.createElement('div');el.className='pop';el.style.left=x+'%';el.style.top=y+'%';
     el.innerHTML=`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONS[ic]}</svg><span>${txt}</span>`;popsEl.append(el);
     requestAnimationFrame(()=>el.classList.add('in'));
     setTimeout(()=>{if(t.catch){const b=box.getBoundingClientRect(),e=el.getBoundingClientRect();el.classList.add('caught');el.style.transform=`translate(${b.left+b.width/2-e.left-e.width/2}px,${b.top+b.height/2-e.top-e.height/2}px) scale(.15)`;flash&&flash()}
       else el.classList.add('out');setTimeout(()=>el.remove(),750)},2500)}
   schedule()};
-const schedule=()=>{if(!popTimer)popTimer=setTimeout(spawn,1000+Math.random()*700)};
+const schedule=()=>{if(!popTimer)popTimer=setTimeout(spawn,700+Math.random()*500)};
 new MutationObserver(()=>{if(paused())popsEl.replaceChildren()}).observe(r,{attributes:true,attributeFilter:['class']});
 if(!rm)schedule();let flash=null;
 
